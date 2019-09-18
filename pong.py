@@ -1,6 +1,8 @@
 import pygame, sys
 from pygame.locals import *
 
+pygame.init()
+
 # Number of frames per second
 # Change this value to speed up or slow down your game
 FPS = 50
@@ -8,6 +10,8 @@ FPS = 50
 #images
 background_image= pygame.image.load('background.png')
 paddle_image=pygame.image.load('paddle.png')
+point_sound=pygame.mixer.Sound('point.wav')
+
 #paddlstretched=pygame.transform.scale(paddle_image, (PADDLELENGTH,PADDLEEDGE))
 
 
@@ -59,22 +63,6 @@ def background():
 
 
 
-
-
-
-#def ballmoving( ballDirx, ballDiry):
-   # ballx+= ballDirX
-
-   # bally+=ballDiry
-
-
-
-
-
-
-
-
-
 #Main function
 def main():
     pygame.init()
@@ -85,7 +73,7 @@ def main():
     DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH,WINDOWHEIGHT))
     pygame.display.set_caption('Pong')
 
-    ai_speed = 5
+    ai_speed = 2
 
     #STARTING POSITONS
     computer= (WINDOWHEIGHT-PADDLELENGTH) /2
@@ -111,9 +99,15 @@ def main():
     ballx = int(WINDOWWIDTH / 2 - LINETHICK / 2)
     bally = int(WINDOWHEIGHT / 2 - LINETHICK / 2)
 
-    ballDirX=1
-    ballDiry= -1
+    ballDirX=-1
+    ballDiry= 0
 
+    scoreforcomp=0
+    scoreforuser=0
+
+    font = pygame.font.Font(pygame.font.get_default_font(), 25)
+    score_comp = font.render(str(scoreforcomp), False, BLACK)
+    score_user = font.render(str(scoreforuser), False, BLACK)
 
     background()
     paddle(computerpaddle, TEAL)
@@ -178,19 +172,74 @@ def main():
             userpaddle2.right +=ai_speed
             userpaddle3.right += ai_speed
 
-        if userpaddle3.collidepoint(ballx,bally):
-            ballx-=ai_speed
-            bally+=ai_speed
 
-        if (ballx,bally)>( WINDOWWIDTH,WINDOWHEIGHT):
+        if userpaddle.collidepoint(ballx,bally):
+            ballDirX-=1
+            ballDiry-=1
+        if userpaddle2.collidepoint(ballx,bally):
+            ballDirX+=1
+            ballDiry-=1
+        if userpaddle3.collidepoint(ballx,bally):
+            ballDirX+=1
+            ballDiry+=1
+        if computerpaddle.collidepoint(ballx,bally):
+            ballDirX+=1
+            ballDiry+=1
+        if computerpaddle2.collidepoint(ballx, bally):
+            ballDirX += 1
+            ballDiry -= 1
+        if computerpaddle3.collidepoint(ballx,bally):
+            ballDirX-=1
+            ballDiry+=1
+
+
+        if ballx> WINDOWWIDTH:
             ballx = int(WINDOWWIDTH/2)
             bally = int(WINDOWHEIGHT/2)
+            scoreforcomp+=1
+            point_sound.play()
+        if bally<0 and ballx < WINDOWWIDTH/2:
+            ballx = int(WINDOWWIDTH / 2)
+            bally = int(WINDOWHEIGHT / 2)
+            scoreforuser+=1
+            point_sound.play()
+        elif bally<0 and ballx >WINDOWWIDTH/2:
+            ballx = int(WINDOWWIDTH / 2)
+            bally = int(WINDOWHEIGHT / 2)
+            scoreforcomp += 1
+            point_sound.play()
+        if bally>WINDOWHEIGHT and ballx< WINDOWWIDTH/2:
+            ballx = int(WINDOWWIDTH / 2)
+            bally = int(WINDOWHEIGHT / 2)
+            scoreforuser += 1
+        elif bally>WINDOWHEIGHT and ballx>WINDOWWIDTH/2:
+            ballx = int(WINDOWWIDTH / 2)
+            bally = int(WINDOWHEIGHT / 2)
+            scoreforcomp += 1
+            point_sound.play()
+        if ballx<0:
+            ballx = int(WINDOWWIDTH / 2)
+            bally = int(WINDOWHEIGHT / 2)
+            scoreforuser+=1
+            point_sound.play()
+        if bally <= computerpaddle.centery :
+            computerpaddle.centery-=ai_speed
+        elif bally >= computerpaddle2.centery:
+            computerpaddle.centery +=ai_speed
+        if ballx <= computerpaddle2.left:
+            computerpaddle2.centerx -=ai_speed
+            computerpaddle3.centerx -= ai_speed
+        if ballx >=computerpaddle2.right and computerpaddle2.right < WINDOWWIDTH/2 and computerpaddle3.right< WINDOWWIDTH/2:
+            computerpaddle2.centerx +=ai_speed
+            computerpaddle3.centerx+=ai_speed
+
 
 
 
 
 
         background()
+
         paddle(computerpaddle, TEAL)
         paddle(userpaddle, PURPLE)
         verticalpaddle(computerpaddle2, TEAL)
@@ -203,8 +252,12 @@ def main():
         DISPLAYSURF.blit(paddlestretched2, computerpaddle)
         DISPLAYSURF.blit(paddlestretched, computerpaddle2)
         DISPLAYSURF.blit(paddlestretched, computerpaddle3)
+        score_comp = font.render( str(scoreforcomp), False, BLACK)
+        DISPLAYSURF.blit(score_comp, ((150) , (WINDOWHEIGHT / 2)))
+        score_user=font.render(str(scoreforuser),False,BLACK)
+        DISPLAYSURF.blit(score_user,(250,(WINDOWHEIGHT/2)))
         ball = pygame.draw.circle(DISPLAYSURF, PURPLE, (ballx, bally), 15, 0)
-        #collison(ball, computerpaddle3, ballDirX, ballx)
+
 
 
 
